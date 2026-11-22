@@ -24,8 +24,31 @@ jobs:
           username: devopseasylearning
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build Docker image
         run: |
           docker build --pull --tag "${IMAGE_NAME}:${GITHUB_SHA}" --tag "${IMAGE_NAME}:latest" .
+
+      - name: Verify Docker image
+        run: |
+          docker run --detach --name s13-training-camps-ci --publish 127.0.0.1:8080:8080 "${IMAGE_NAME}:${GITHUB_SHA}"
+          for attempt in $(seq 1 30); do
+            if response=$(curl --fail --silent http://127.0.0.1:8080/health); then
+              printf 'Health response: %s\n' "$response"
+              if ! printf '%s' "$response" | grep -q '"status":"healthy"'; then
+                docker logs s13-training-camps-ci
+                docker rm --force s13-training-camps-ci
+                exit 1
+              fi
+              docker rm --force s13-training-camps-ci
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs s13-training-camps-ci
+          docker rm --force s13-training-camps-ci
+          exit 1
+
+      - name: Push Docker image
+        run: |
           docker push "${IMAGE_NAME}:${GITHUB_SHA}"
           docker push "${IMAGE_NAME}:latest"

@@ -50,4 +50,4 @@ Use `docker volume rm s13-training-camps-data` only when you intentionally want 
 
 ## CI/CD
 
-`.github/workflows/docker-build.yml` builds and pushes the image to `devopseasylearning/s13-training-camps` on every branch push. Set the `DOCKERHUB_TOKEN` repository Actions secret to a Docker Hub access token with permission to push to the repository. The workflow can also be started manually from the Actions tab.
+`.github/workflows/docker-build.yml` builds and health-checks the image, then pushes it to `devopseasylearning/s13-training-camps` on every branch push. Set the `DOCKERHUB_TOKEN` repository Actions secret to a Docker Hub access token with permission to push to the repository. The workflow can also be started manually from the Actions tab.
