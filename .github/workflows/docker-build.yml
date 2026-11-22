@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "**"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,9 +12,20 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    env:
+      IMAGE_NAME: devopseasylearning/s13-training-camps
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build --tag "s13-training-camps:${GITHUB_SHA}" .
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: devopseasylearning
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build --pull --tag "${IMAGE_NAME}:${GITHUB_SHA}" --tag "${IMAGE_NAME}:latest" .
+          docker push "${IMAGE_NAME}:${GITHUB_SHA}"
+          docker push "${IMAGE_NAME}:latest"
